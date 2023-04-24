@@ -20,6 +20,7 @@ class SignalStore(QObject):
 class mainwindow(QMainWindow):
     # 自定义的类中包含一个 信号 成员
     signalStore = SignalStore()
+    python_exe :str = ""
     
     def __init__(self):
         super().__init__()
@@ -30,6 +31,7 @@ class mainwindow(QMainWindow):
         
         self.custom_init()
         self.ui.show()
+        
     
     def custom_init(self):
         
@@ -67,9 +69,11 @@ class mainwindow(QMainWindow):
         if fileInput == "":
             return
         
+        self.python_exe = fileInput
         whisper_path = os.path.dirname(fileInput)
         whisper_path = whisper_path + "/Lib/site-packages"
         self.ui.whisper_lineEdit.setText(whisper_path)
+        
     
     def on_output_pushButton_clicked(self):
         dirOutput = QFileDialog.getExistingDirectory(self, "选择python.exe文件", "D:\python333")
@@ -107,11 +111,11 @@ class mainwindow(QMainWindow):
     
     def on_process_pushButton_clicked(self):
         
-        self.ui.textBrowser.setText("")
+        # self.ui.textBrowser.setText("")
+        #
+        # print(sys.executable)
         
-        print(sys.executable)
-        
-        commandLine = ["cmd", "/c", sys.executable, "./convert-pt-to-ggml.py"]
+        commandLine = ["cmd", "/c", self.python_exe , "./convert-pt-to-ggml.py"]
         
         fname_inp = self.ui.input_lineEdit.text()
         commandLine.append(fname_inp)
