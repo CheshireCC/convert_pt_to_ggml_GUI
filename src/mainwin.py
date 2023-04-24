@@ -1,13 +1,14 @@
-from PyQt5 import uic
-from PyQt5.QtCore import pyqtSignal,pyqtSlot, QObject
-from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QPushButton, QLineEdit, QRadioButton, QTextBrowser
-from PyQt5.QtGui import QTextCursor
 import subprocess
 import sys
 
+from PyQt5 import uic
+from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtGui import QTextCursor
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QPushButton, QLineEdit, QRadioButton, QMenu
+
+QMenu.triggered
 import os
 
-from .convert_pt_to_ggml import convert
 
 class SignalStore(QObject):
     output = pyqtSignal(str)
@@ -15,23 +16,20 @@ class SignalStore(QObject):
     subprocess_over = pyqtSignal(int)
 
 
-
 # 动态载入
 class mainwindow(QMainWindow):
-    
     # 自定义的类中包含一个 信号 成员
     signalStore = SignalStore()
     
     def __init__(self):
         super().__init__()
         # PyQt5
-        self.ui = uic.loadUi("../UI/UI")
+        self.ui = uic.loadUi("./UI/UI")
         # 这里与静态载入不同，使用 self.ui.show()
         # 如果使用 self.show(),会产生一个空白的 MainWindow
         
         self.custom_init()
         self.ui.show()
-        
     
     def custom_init(self):
         
@@ -45,12 +43,15 @@ class mainwindow(QMainWindow):
         
         self.ui.textBrowser.textChanged.connect(self.moveTextCurser)
         
-        
-        
+        self.ui.actionAbout.triggered.connect(self.about_clicked)
+    
+    def about_clicked(self):
+        QMessageBox.warning(self, "Code", "Based on https://github.com/ggerganov/whisper.cpp/blob/master/models/convert-pt-to-ggml.py \nGUI with PyQt5 Community Editon", QMessageBox.Yes, QMessageBox.Yes)
+    
     def moveTextCurser(self):
         
         self.ui.textBrowser.moveCursor(QTextCursor.End)
-        
+    
     def on_input_pushButton_clicked(self):
         fileInput, filter = QFileDialog.getOpenFileName(self, "打开pt文件", "D:\WhisperModels", filter="All files(*.*);;OpenAI models(*.pt)")
         if fileInput == "":
@@ -60,7 +61,6 @@ class mainwindow(QMainWindow):
         
         inputDir = os.path.dirname(fileInput)
         self.ui.output_lineEdit.setText(inputDir)
-        
     
     def on_whisper_pushButton_clicked(self):
         fileInput, filter = QFileDialog.getOpenFileName(self, "选择python.exe文件", "D:\python39", filter="python.exe(*.exe)")
@@ -78,13 +78,12 @@ class mainwindow(QMainWindow):
         
         self.ui.whisper_lineEdit.setText(dirOutput)
     
-    def printToTB(self, text:str):
+    def printToTB(self, text: str):
         self.ui.textBrowser.insertPlainText(text)
-        
     
-    def process_over(self,poll : int):
+    def process_over(self, poll: int):
         if poll == 0:
-            yes_No = QMessageBox.warning(self,"处理完毕","处理结束！ 是否打开输出文件夹？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            yes_No = QMessageBox.warning(self, "处理完毕", "处理结束！ 是否打开输出文件夹？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             
             if yes_No == QMessageBox.No:
                 return
@@ -92,24 +91,19 @@ class mainwindow(QMainWindow):
                 out_dir = self.ui.output_lineEdit.text()
                 out_dir = "\\".join(out_dir.split("/"))
                 
-                commandLine = ["cmd","/c", "explorer.exe", out_dir]
+                commandLine = ["cmd", "/c", "explorer.exe", out_dir]
                 
                 print(" ".join(commandLine))
-                res = subprocess.Popen(commandLine,creationflags=subprocess.CREATE_NO_WINDOW,text=True,stdout=subprocess.PIPE)
+                res = subprocess.Popen(commandLine, creationflags=subprocess.CREATE_NO_WINDOW, text=True, stdout=subprocess.PIPE)
                 # for line in res.stdout:
                 #     print(line)
                 #
                 res.wait()
-                
+        
         if poll != 0:
-            QMessageBox.warning(self,"错误","处理出错，请检查输入文件及输出文件夹")
+            QMessageBox.warning(self, "错误", "处理出错，请检查输入文件及输出文件夹")
         
-        self.changeChildrenEnabled( )
-            
-            
-        
-        
-    
+        self.changeChildrenEnabled()
     
     def on_process_pushButton_clicked(self):
         
@@ -117,8 +111,7 @@ class mainwindow(QMainWindow):
         
         print(sys.executable)
         
-        
-        commandLine = ["cmd","/c", sys.executable, "./convert-pt-to-ggml.py"]
+        commandLine = ["cmd", "/c", sys.executable, "./src/convert-pt-to-ggml.py"]
         
         fname_inp = self.ui.input_lineEdit.text()
         commandLine.append(fname_inp)
@@ -141,7 +134,8 @@ class mainwindow(QMainWindow):
         self.changeChildrenEnabled()
         
         def call_process():
-            subprocess_convert = subprocess.Popen(commandLine, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW, encoding="ANSI", text=True)
+            subprocess_convert = subprocess.Popen(commandLine, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW, encoding="ANSI",
+                                                  text=True)
             
             for line in subprocess_convert.stdout:
                 self.signalStore.output.emit(line)
@@ -156,11 +150,9 @@ class mainwindow(QMainWindow):
         threa_1 = Thread(target=call_process, daemon=True)
         threa_1.start()
         
-        
         # convert(fname_inp=fname_inp, dir_whisper=dir_whisper, dir_out=dir_out, use_f16=use_f16)
     
     def changeChildrenEnabled(self):
-        
         
         buttons = self.ui.findChildren(QPushButton)
         
@@ -176,6 +168,3 @@ class mainwindow(QMainWindow):
         
         for radioButton in radioButtons:
             radioButton.setEnabled((not (radioButton.isEnabled())))
-        
-        
-    
