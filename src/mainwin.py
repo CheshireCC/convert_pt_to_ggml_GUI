@@ -24,7 +24,7 @@ class mainwindow(QMainWindow):
     def __init__(self):
         super().__init__()
         # PyQt5
-        self.ui = uic.loadUi("./UI/UI")
+        self.ui = uic.loadUi("../UI/UI")
         # 这里与静态载入不同，使用 self.ui.show()
         # 如果使用 self.show(),会产生一个空白的 MainWindow
         
@@ -72,11 +72,11 @@ class mainwindow(QMainWindow):
         self.ui.whisper_lineEdit.setText(whisper_path)
     
     def on_output_pushButton_clicked(self):
-        dirOutput = QFileDialog.getExistingDirectory(self, "选择python.exe文件", "D:\python39")
+        dirOutput = QFileDialog.getExistingDirectory(self, "选择python.exe文件", "D:\python333")
         if dirOutput == "":
             return
         
-        self.ui.whisper_lineEdit.setText(dirOutput)
+        self.ui.output_lineEdit.setText(dirOutput)
     
     def printToTB(self, text: str):
         self.ui.textBrowser.insertPlainText(text)
@@ -111,7 +111,7 @@ class mainwindow(QMainWindow):
         
         print(sys.executable)
         
-        commandLine = ["cmd", "/c", sys.executable, "./src/convert-pt-to-ggml.py"]
+        commandLine = ["cmd", "/c", sys.executable, "./convert-pt-to-ggml.py"]
         
         fname_inp = self.ui.input_lineEdit.text()
         commandLine.append(fname_inp)
